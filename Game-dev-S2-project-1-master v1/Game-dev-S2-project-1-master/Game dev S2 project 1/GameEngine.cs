@@ -21,6 +21,11 @@ namespace Game_dev_S2_project_1
         //Enum for tracking level state
         private GameState game = GameState.InProgress;
 
+        //Amount of moves made in the game
+        private int numMoves = 0;
+
+        public string heroStats;
+
         public GameEngine(int NumLevels)
         {
             //The width and height of the level will be determined by rolling
@@ -31,7 +36,7 @@ namespace Game_dev_S2_project_1
             int width = rnd.Next(MIN_SIZE, MAX_SIZE + 1);
             int height = rnd.Next(MIN_SIZE, MAX_SIZE + 1);
             this.NumLevels = NumLevels;
-            currentlevel = new Level(width, height);
+            currentlevel = new Level(width, height, currentLevelNumber);
 
         }
         //This method will return the ToString value of the current-level , or an end screen if the game is completed
@@ -46,7 +51,7 @@ namespace Game_dev_S2_project_1
                 result = currentlevel.ToString();
             } 
             else if (game == GameState.GameOver) {
-                result = "";
+                result = "GAME OVER";
             }
             return result;
         }
@@ -80,7 +85,7 @@ namespace Game_dev_S2_project_1
             {
                 success = true;
                 currentlevel.SwopTiles(hero.visionArray[targetTile], currentlevel.getHeroTile());
-                hero.UpdateVision(currentlevel);
+                currentlevel.UpdateVision(currentlevel, currentlevel.getHeroTile(), currentlevel.GetEnemyTiles());
             }
             return success;
         }
@@ -88,8 +93,15 @@ namespace Game_dev_S2_project_1
         //Calls MoveHero()
         public void TriggerMovement(Level.Direction move)
         {
-            //debug.Text = "Moving";
-            MoveHero(move);
+            numMoves++;
+            if (numMoves % 2 == 0)
+            {
+                MoveHero(move);
+                MoveEnemies();
+            }
+            else {
+                MoveHero(move);
+            }   
         }
 
         
@@ -109,7 +121,115 @@ namespace Game_dev_S2_project_1
             int width = rnd.Next(MIN_SIZE, MAX_SIZE + 1);
             int height = rnd.Next(MIN_SIZE, MAX_SIZE + 1);
 
-            currentlevel = new Level(width, height, tempHero);
+            currentlevel = new Level(width, height, currentLevelNumber, tempHero);
         }
+
+        //Part 2 - Q2.4
+        private void MoveEnemies() {
+
+            EnemyTile[] enemyArray = currentlevel.GetEnemyTiles();
+            Tile target;
+
+            for (int i = 0; i < enemyArray.Length; i++)
+            {
+                if (enemyArray[i].IsDead())
+                {}
+                else
+                {
+                    if (enemyArray[i].GetMove(out target)) {
+                        if (target != null)
+                        {
+                            currentlevel.SwopTiles(enemyArray[i], target);
+                        }  
+                    }
+                }    
+            }
+            currentlevel.UpdateVision(currentlevel, currentlevel.getHeroTile() ,enemyArray);
+        }
+
+        //Part 2 - Q3.1
+        //Checks if the hero can attack a nearby character tile if one is available in the vision array
+        private bool HeroAttack(Level.Direction direct) {
+            //Part 2 Q3.3
+            if (game != GameState.GameOver)
+            {
+                bool success = false;
+                HeroTile ht = currentlevel.getHeroTile();
+                CharacterTile ct;
+                Tile targetTile;
+
+                try
+                {
+                    targetTile = ht.visionArray[(int)direct];
+
+                    if (targetTile.display == 'Ϫ')
+                    {
+                        success = true;
+                        ct = targetTile as CharacterTile;
+                        ht.Attack(ct);
+                    }
+                    else
+                    {
+                        success = false;
+                    }
+
+                }
+                catch (NullReferenceException ex)
+                {
+                    success = false;
+                }
+
+
+                return success;
+            }
+            return false;
+        }
+
+        //LABEL PARAMETER USED FOR DEBUGGING - REMOVE AFTER USE
+        public void TriggerAttack(Level.Direction direct)
+        {
+            if (game != GameState.GameOver) {
+
+                //Will be updated later in POE
+                HeroAttack(direct);
+                EnemiesAttack();
+                heroStats = getHeroStats();
+
+                if (currentlevel.getHeroTile().IsDead())
+                {
+                    game = GameState.GameOver;
+                }
+            }
+        }
+
+        //Loops through all living enemies and attacks any character tiles in their vision arrays 
+        //LABEL PARAMETER USED FOR DEBUGGING - REMOVE AFTER USE
+        private void EnemiesAttack() {
+
+            EnemyTile[] et = currentlevel.GetEnemyTiles();
+            
+            for (int i = 0; i < et.Length; i++) {
+                if (et[i].display != 'x')
+                {
+                    CharacterTile[] targets = et[i].GetTargets();
+
+
+                    for (int j = 0; j < targets.Length; j++)
+                    {
+                        if (targets[j] != null)
+                        {
+                            et[i].Attack(targets[j]);
+                        }
+                    }
+                }
+            }
+        }
+
+        public string getHeroStats() {
+            string temp = "HP: " + currentlevel.getHeroTile().HP() + "/40"; 
+            return temp;
+        }
+
+
     }
 }

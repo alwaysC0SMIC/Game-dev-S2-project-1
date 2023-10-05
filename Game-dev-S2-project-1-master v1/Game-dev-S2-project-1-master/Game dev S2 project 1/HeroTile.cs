@@ -27,7 +27,7 @@ namespace Game_dev_S2_project_1
         //Constructor for hero tile
         public HeroTile(Position pos, int hitPnts = 40, int attPwr = 5) : base(pos, hitPnts, attPwr)
         {
-        } 
+        }
     }
 }
 

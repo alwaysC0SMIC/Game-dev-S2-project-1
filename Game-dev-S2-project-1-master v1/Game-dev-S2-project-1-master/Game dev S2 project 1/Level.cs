@@ -17,7 +17,10 @@ namespace Game_dev_S2_project_1
         private HeroTile heroTile = new HeroTile(null);
         private ExitTile exitTile;
 
-   
+        //Part 2 Q2.3
+        //Stores all enemies in the level
+        private EnemyTile[] enemyArray;
+
         //Enum called TileType that has values
         public enum TileType
         {
@@ -25,6 +28,7 @@ namespace Game_dev_S2_project_1
             Wall,
             Hero,
             Exit,
+            Enemy,
         }
 
         //Direction enum for moving the hero character
@@ -39,14 +43,15 @@ namespace Game_dev_S2_project_1
 
         //The constructor  initialises the 2D Tile array, using the width and the 
         //height values as the array’s dimensions.
-        public Level(int width, int height, HeroTile ht = null)
+        public Level(int width, int height, int enemyNum, HeroTile ht = null)
         {
             Width = width;
             Height = height;
             array2D = new Tile[Width, Height];
+            enemyArray = new EnemyTile[enemyNum];
 
             InitialiseTiles();
-
+            
             //Creates a new hero tile + object if one doesn't already exist
             //If it exists, it gets assigned a new position
             Position randomHero = GetRandomEmptyPosition();
@@ -62,8 +67,16 @@ namespace Game_dev_S2_project_1
                 ht.y = randomHero.YCod;
                 heroTile = ht;
             }
-            heroTile.UpdateVision(this);
-            
+            //heroTile.UpdateVision(this);  - no longer needed
+
+            //Populates level with enemy tiles
+            for (int i = 0; i < enemyNum; i++) {
+                Position randomEnemy = GetRandomEmptyPosition();
+                CreateTile(TileType.Enemy, randomEnemy);
+                enemyArray[i] = new GruntTile(randomEnemy);
+            }
+
+            UpdateVision(this, heroTile, enemyArray);
 
             //Sets up a random tile to be the exit tile
             Position randomExit = GetRandomEmptyPosition();
@@ -99,6 +112,11 @@ namespace Game_dev_S2_project_1
                     break;
                 case TileType.Exit:
                     tile = new ExitTile(pos);
+                    array2D[pos.XCod, pos.YCod] = tile;
+                    break;
+                case TileType.Enemy:
+                    //Will be updated to produce random enemy in part 3
+                    tile = new GruntTile(pos);  
                     array2D[pos.XCod, pos.YCod] = tile;
                     break;
                 default:
@@ -152,8 +170,8 @@ namespace Game_dev_S2_project_1
         private Position GetRandomEmptyPosition()
         {
             Random rnd = new Random();
-            int randomX = rnd.Next(0, Width);
-            int randomY = rnd.Next(0, Height);
+            int randomX = rnd.Next(1, Width-1);
+            int randomY = rnd.Next(1, Height-1);
             bool found = false;
 
             while (found == false)
@@ -161,11 +179,11 @@ namespace Game_dev_S2_project_1
                 if (array2D[randomX, randomY].display == '.')
                 {
                     found = true;
-                }
+                }  
                 else
                 {
-                    randomX = rnd.Next(0, Width);
-                    randomY = rnd.Next(0, Height);
+                    randomX = rnd.Next(1, Width - 1);
+                    randomY = rnd.Next(1, Height - 1);
                 }
             }
             Position ps = new Position(randomX, randomY);
@@ -211,6 +229,26 @@ namespace Game_dev_S2_project_1
         public ExitTile getExitTile()
         {
             return exitTile;
+        }
+
+        //Accessor for enemyArray
+        public EnemyTile[] GetEnemyTiles()
+        {
+            return enemyArray;
+        }
+
+
+        //Part 2 Q2.3 - UpdateVision method for updating all characterTiles
+        public void UpdateVision(Level lvl, HeroTile ht, EnemyTile[] et)
+        {
+            //Hero Update
+            ht.UpdateVision(lvl);
+
+            //Enemy Update
+            for (int i = 0; i < et.Length; i++)
+            {
+                et[i].UpdateVision(lvl);
+            }
         }
     }
 }

@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace Game_dev_S2_project_1
 {
-    
+
     public abstract class CharacterTile : Tile
     {
         //Variables
         Position charPos;
         private int hitPoints, maxHitPoints, attPower;
-        public Tile[] visionArray;   
+        public Tile[] visionArray;
 
         //Constructor that assigns variables
         public CharacterTile(Position pos, int hitPnts, int attPwr) : base(pos)
@@ -21,7 +21,6 @@ namespace Game_dev_S2_project_1
             hitPoints = hitPnts;
             attPower = attPwr;
             maxHitPoints = hitPnts;
-
             visionArray = new Tile[4];
 
             // Initializing vision field
@@ -32,24 +31,25 @@ namespace Game_dev_S2_project_1
         {
             try
             {
-                Tile[,]  array = lvl.array2D;
+                Tile[,] array = lvl.array2D;
 
-                Tile tileUp = array[charPos.XCod, charPos.YCod  - 1];
+                Tile tileUp = array[charPos.XCod, charPos.YCod - 1];
                 Tile tileDown = array[charPos.XCod, charPos.YCod + 1];
                 Tile tileLeft = array[charPos.XCod - 1, charPos.YCod];
                 Tile tileRight = array[charPos.XCod + 1, charPos.YCod];
-                
+
                 visionArray[0] = tileUp;
                 visionArray[1] = tileRight;
                 visionArray[2] = tileDown;
                 visionArray[3] = tileLeft;
-                
-             
+
+
             }
             catch (NullReferenceException ex)
             {
             }
         }
+
 
         //Subtracts damage taken from character's hitpoints
         public void TakeDamage(int dmg)
@@ -72,6 +72,13 @@ namespace Game_dev_S2_project_1
         {
             return hitPoints <= 0;
         }
+
+        //Accessor method for exposing character's hitpoints
+        public int HP()
+        {
+            return hitPoints;
+        }
+
     }
     //References:
     //https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/exceptions/exception-handling
